@@ -104,7 +104,11 @@ export class BotWorker {
                 if (err) {
                     return reject(err);
                 }
-                resolve(await this.getConfig('context').sendActivity(activity));
+                try {
+                    resolve(await this.getConfig('context').sendActivity(activity));
+                } catch (err) {
+                    reject(err);
+                }
             });
         });
     };

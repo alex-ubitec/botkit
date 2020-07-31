@@ -753,8 +753,9 @@ export class Botkit {
                 } else {
                     this.middleware.receive.run(bot, message, async (err, bot, message) => {
                         if (err) {
-                            reject(err);
-                        } else {
+                            return reject(err);
+                        } 
+                        try {
                             const interrupt_results = await this.listenForInterrupts(bot, message);
 
                             if (interrupt_results === false) {
@@ -768,7 +769,10 @@ export class Botkit {
                             // make sure changes to the state get persisted after the turn is over.
                             await this.saveState(bot);
                             resolve();
+                        } catch (err) {
+                            reject (err);
                         }
+                        
                     });
                 }
             });
@@ -796,15 +800,19 @@ export class Botkit {
                 if (err) {
                     return reject(err);
                 }
-                const listen_results = await this.listenForTriggers(bot, message);
-
-                if (listen_results !== false) {
-                    resolve(listen_results);
-                } else {
-                    // Trigger event handlers
-                    const trigger_results = await this.trigger(message.type, bot, message);
-
-                    resolve(trigger_results);
+                try {
+                    const listen_results = await this.listenForTriggers(bot, message);
+    
+                    if (listen_results !== false) {
+                        resolve(listen_results);
+                    } else {
+                        // Trigger event handlers
+                        const trigger_results = await this.trigger(message.type, bot, message);
+    
+                        resolve(trigger_results);
+                    }
+                } catch (err) {
+                    reject(err);
                 }
             });
         });
